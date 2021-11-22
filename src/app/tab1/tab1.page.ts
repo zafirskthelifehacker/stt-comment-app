@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { SpeechRecognition } from '@ionic-native/speech-recognition/ngx';
 
 @Component({
   selector: 'app-tab1',
@@ -7,6 +8,24 @@ import { Component } from '@angular/core';
 })
 export class Tab1Page {
 
-  constructor() {}
+  listenText;
+
+  constructor(private speechRecognition: SpeechRecognition) {
+    this.speechRecognition.requestPermission().then(
+      () => console.log('Granted'),
+      () => console.log('Not Granted'),
+    );
+  }
+
+  listenToVoice() {
+    this.speechRecognition.startListening()
+    .subscribe(
+      (matches: string[]) => {
+        console.log(matches);
+        this.listenText = matches;
+      },
+      (onerror) => console.log('error:', onerror)
+    );
+  }
 
 }
