@@ -1,0 +1,7 @@
+{
+  "name": "stt-comment-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
