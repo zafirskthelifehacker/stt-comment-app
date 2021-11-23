@@ -1,5 +1,16 @@
 <ion-button (click)="listenToVoice()">Listen to Me</ion-button>
+<ion-button (click)="stopListenToVoice()">Stop Listen to Me(iOS)</ion-button>
 
 <ion-text color="secondary">
   <h1>{{listenText}}</h1>
 </ion-text>
+
+<ion-button (click)="captureAudio()">Record Me</ion-button>
+<ion-button (click)="stopCaptureAudio()">Stop Record Me</ion-button>
+<ion-button (click)="playAudio()">Play Me</ion-button>
+
+<!-- <ion-list>
+  <ion-item *ngFor="let file of mediaFiles" tappable (click)="play(file)" text-wrap>
+    {{ file.name }}
+  </ion-item>
+</ion-list> -->
