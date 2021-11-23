@@ -24,10 +24,6 @@ export class SpeechComponent implements OnInit {
 
   constructor(private speechRecognition: SpeechRecognition, private file: File, private storage: Storage,
     private media: Media, private platform: Platform, public zone: NgZone) {
-    this.speechRecognition.requestPermission().then(
-      () => console.log('Granted'),
-      () => console.log('Not Granted'),
-    );
   }
 
   ngOnInit() {
@@ -36,11 +32,18 @@ export class SpeechComponent implements OnInit {
     });
   }
 
+  requestPermission() {
+    this.speechRecognition.requestPermission().then(
+      () => console.log('Granted'),
+      () => console.log('Not Granted'),
+    );
+  }
+
   async listenToVoice() {
-    this.captureAudio();
     await this.speechRecognition.startListening()
     .subscribe(
       (matches: string[]) => {
+        // this.captureAudio();
         console.log(matches);
         this.zone.run(() => {
           this.listenText = matches[0];
@@ -48,7 +51,7 @@ export class SpeechComponent implements OnInit {
       },
       (onerror) => console.log('error:', onerror)
     );;
-    this.stopCaptureAudio();
+    // this.stopCaptureAudio();
   }
 
   async stopListenToVoice() {
@@ -76,12 +79,14 @@ export class SpeechComponent implements OnInit {
        }
        this.audio.startRecord();
        this.isAudioRecording = true;
+       console.log('ZAFIR');
     } catch (error) {
        console.log(error);
     }
   }
 
   stopCaptureAudio() {
+    console.log('ZAFIR2');
     this.audio.stopRecord();
     this.isAudioRecording = false;
   }
