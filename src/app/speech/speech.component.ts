@@ -16,15 +16,13 @@ declare const webkitSpeechRecognition: any;
   styleUrls: ['./speech.component.scss'],
 })
 export class SpeechComponent implements OnInit {
-
-  mediaFiles = [];
   
   listenText;
   
-  webRecognition = new webkitSpeechRecognition();
-  isStoppedWebSpeechRecog = false;
-  webText = '';
-  webTempWords;
+  // webRecognition = new webkitSpeechRecognition();
+  // isStoppedWebSpeechRecog = false;
+  // webText = '';
+  // webTempWords;
   listening = false;
 
   constructor(private speechRecognition: SpeechRecognition, private mediaCapture: MediaCapture, private storage: Storage,
@@ -32,79 +30,89 @@ export class SpeechComponent implements OnInit {
   }
 
   ngOnInit() {
-      this.webRecognition.interimResults = true;
-      this.webRecognition.lang = 'en-US';
-      this.webRecognition.addEventListener('result', (e) => {
-        const transcript = Array.from(e.results)
-          .map((result) => result[0])
-          .map((result) => result.transcript)
-          .join('');
-        this.webTempWords = transcript;
-        this.listenText = transcript;
-    });
+    //   this.webRecognition.interimResults = true;
+    //   this.webRecognition.lang = 'en-US';
+    //   this.webRecognition.addEventListener('result', (e) => {
+    //     const transcript = Array.from(e.results)
+    //       .map((result) => result[0])
+    //       .map((result) => result.transcript)
+    //       .join('');
+    //     this.webTempWords = transcript;
+    //     this.listenText = transcript;
+    // });
   }
 
   requestPermission() {
-    const permissions: any = cordova.plugins.permissions;
-    permissions.requestPermissions(
-      [
-        permissions.RECORD_AUDIO,
-        permissions.MODIFY_AUDIO_SETTINGS
-      ],
-      (status) => console.log(status),
-      (error) => console.log(error)
+    this.speechRecognition.requestPermission().then(
+      () => console.log('Granted'),
+      () => console.log('Not Granted'),
     );
   }
 
+  // requestPermission() {
+  //   const permissions: any = cordova.plugins.permissions;
+  //   permissions.requestPermissions(
+  //     [
+  //       permissions.RECORD_AUDIO,
+  //       permissions.MODIFY_AUDIO_SETTINGS
+  //     ],
+  //     (status) => console.log(status),
+  //     (error) => console.log(error)
+  //   );
+  // }
+
   listenToVoice() {
-    // this.captureAudio();
-    this.isStoppedWebSpeechRecog = false;
     this.listening = true;
-    this.webRecognition.start();
-    console.log('Speech Recognition Started');
-    this.webRecognition.addEventListener('end', (condition) => {
-      if (this.isStoppedWebSpeechRecog) {
-        this.webRecognition.stop();
-        console.log('End Speech Recognition');
-      } else {
-        this.webText = this.webText + ' ' + this.webTempWords + '.';
-        this.webTempWords = '';
-        this.webRecognition.start();
+    let options = {
+      showPopup: false
+    };
+    let temp;
+    this.speechRecognition.startListening(options)
+    .subscribe(
+      (matches: string[]) => {
+        console.log(matches);
+        temp = matches[0];
+        this.zone.run(() => {
+          this.listenText = matches[0];
+        });
+
+      },
+      (onerror) => console.log('error:', onerror),
+      () => {
+        this.listenText = temp;
       }
-    });
+    );
   }
 
   stopListenToVoice() {
     this.listening = false;
-    this.isStoppedWebSpeechRecog = true;
-    this.webText = this.webText + ' ' + this.webTempWords + '.';
-    this.webTempWords = '';
-    this.webRecognition.stop();
-    console.log('End Speech Recognition');
+    this.speechRecognition.stopListening();
   }
 
-  captureAudio() {
-    this.mediaCapture.captureAudio().then(res => {
-      this.storeMediaFiles(res);
-    });
-  }
+  // listenToVoice() {
+  //   this.isStoppedWebSpeechRecog = false;
+  //   this.listening = true;
+  //   this.webRecognition.start();
+  //   console.log('Speech Recognition Started');
+  //   this.webRecognition.addEventListener('end', (condition) => {
+  //     if (this.isStoppedWebSpeechRecog) {
+  //       this.webRecognition.stop();
+  //       console.log('End Speech Recognition');
+  //     } else {
+  //       this.webText = this.webText + ' ' + this.webTempWords + '.';
+  //       this.webTempWords = '';
+  //       this.webRecognition.start();
+  //     }
+  //   });
+  // }
 
-  play(myFile) {
-    const audioFile: MediaObject = this.media.create(myFile.localURL);
-    audioFile.play();
-  }
-
-  storeMediaFiles(files) {
-    this.storage.get(MEDIA_FILES_KEY).then(res => {
-      if (res) {
-        let arr = JSON.parse(res);
-        arr = arr.concat(files);
-        this.storage.set(MEDIA_FILES_KEY, JSON.stringify(arr));
-      } else {
-        this.storage.set(MEDIA_FILES_KEY, JSON.stringify(files));
-      }
-      this.mediaFiles = this.mediaFiles.concat(files);
-    });
-  }
+  // stopListenToVoice() {
+  //   this.listening = false;
+  //   this.isStoppedWebSpeechRecog = true;
+  //   this.webText = this.webText + ' ' + this.webTempWords + '.';
+  //   this.webTempWords = '';
+  //   this.webRecognition.stop();
+  //   console.log('End Speech Recognition');
+  // }
 
 }
