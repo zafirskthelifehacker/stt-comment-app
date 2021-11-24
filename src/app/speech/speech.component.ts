@@ -24,6 +24,11 @@ export class SpeechComponent implements OnInit {
   // webText = '';
   // webTempWords;
   listening = false;
+  options = {
+    language: 'en-US',
+    showPopup: false,
+    showPartial: true
+  };
 
   constructor(private speechRecognition: SpeechRecognition, private mediaCapture: MediaCapture, private storage: Storage,
     private media: Media, private platform: Platform, public zone: NgZone) {
@@ -62,17 +67,16 @@ export class SpeechComponent implements OnInit {
   // }
 
   listenToVoice() {
+    console.log('Speech Recognition Started');
     this.listening = true;
-    let options = {
-      showPopup: false
-    };
     let temp;
-    this.speechRecognition.startListening(options)
+    this.speechRecognition.startListening(this.options)
     .subscribe(
       (matches: string[]) => {
         console.log(matches);
         temp = matches[0];
         this.zone.run(() => {
+          this.listening = false;
           this.listenText = matches[0];
         });
 
@@ -85,8 +89,11 @@ export class SpeechComponent implements OnInit {
   }
 
   stopListenToVoice() {
-    this.listening = false;
+    this.zone.run(() => {
+      this.listening = false;
+    });
     this.speechRecognition.stopListening();
+    console.log('Speech Recognition Ended');
   }
 
   // listenToVoice() {

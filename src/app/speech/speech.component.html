@@ -1,6 +1,6 @@
 <ion-button (click)="requestPermission()">Request Permission</ion-button>
-<!-- <ion-button (click)="listenToVoice()">Listen to Me</ion-button>
-<ion-button (click)="stopListenToVoice()">Stop Listen to Me</ion-button> -->
+<ion-button (click)="listenToVoice()">Listen to Me</ion-button>
+<ion-button (click)="stopListenToVoice()">Stop Listen to Me</ion-button>
 <!-- <ion-button (press)="listenToVoice()" (pressup)="stopListenToVoice()">Long Press Me</ion-button/> -->
 <div class="mic-container">
   <ion-icon class="micro" name="mic" color="light" (press)="listenToVoice()" (pressup)="stopListenToVoice()"[ngClass]="{'listening': listening}" ></ion-icon>
