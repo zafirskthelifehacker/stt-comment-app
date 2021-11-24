@@ -4,7 +4,9 @@ import { File } from '@ionic-native/file/ngx';
 import { SpeechRecognition } from '@ionic-native/speech-recognition/ngx';
 import { Platform } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
+import { MediaCapture } from '@ionic-native/media-capture/ngx';
 
+declare const cordova: any;
 const MEDIA_FILES_KEY = 'mediaFiles';
 declare const webkitSpeechRecognition: any;
 
@@ -15,29 +17,21 @@ declare const webkitSpeechRecognition: any;
 })
 export class SpeechComponent implements OnInit {
 
-  // mediaFiles = [];
-
-  // isAudioRecording;
-  // audio;
-  // audioPath;
-
+  mediaFiles = [];
+  
   listenText;
-
+  
   webRecognition = new webkitSpeechRecognition();
   isStoppedWebSpeechRecog = false;
   webText = '';
   webTempWords;
+  listening = false;
 
-  constructor(private speechRecognition: SpeechRecognition, private file: File, private storage: Storage,
+  constructor(private speechRecognition: SpeechRecognition, private mediaCapture: MediaCapture, private storage: Storage,
     private media: Media, private platform: Platform, public zone: NgZone) {
   }
 
   ngOnInit() {
-    // if (this.platform.is('cordova')) {
-    //   this.storage.get(MEDIA_FILES_KEY).then(response => {
-    //     // this.mediaFiles = JSON.parse(response) || [];
-    //   });
-    // } else {
       this.webRecognition.interimResults = true;
       this.webRecognition.lang = 'en-US';
       this.webRecognition.addEventListener('result', (e) => {
@@ -48,100 +42,69 @@ export class SpeechComponent implements OnInit {
         this.webTempWords = transcript;
         this.listenText = transcript;
     });
-    // }
   }
 
   requestPermission() {
-    this.speechRecognition.requestPermission().then(
-      () => console.log('Granted'),
-      () => console.log('Not Granted'),
+    const permissions: any = cordova.plugins.permissions;
+    permissions.requestPermissions(
+      [
+        permissions.RECORD_AUDIO,
+        permissions.MODIFY_AUDIO_SETTINGS
+      ],
+      (status) => console.log(status),
+      (error) => console.log(error)
     );
   }
 
-  async listenToVoice() {
-    // if (this.platform.is('cordova')) {
-    //   // await this.captureAudio();
-    //   this.speechRecognition.startListening()
-    //   .subscribe(
-    //     (matches: string[]) => {
-    //       console.log(matches);
-    //       this.zone.run(() => {
-    //         this.listenText = matches[0];
-    //       });
-    //     },
-    //     (onerror) => console.log('error:', onerror)
-    //   );;
-    //   // this.stopCaptureAudio();
-    // } else {
-      this.isStoppedWebSpeechRecog = false;
-      this.webRecognition.start();
-      console.log('Speech recognition started');
-      this.webRecognition.addEventListener('end', (condition) => {
-        if (this.isStoppedWebSpeechRecog) {
-          this.webRecognition.stop();
-          console.log('End speech recognition');
-        } else {
-          this.webText = this.webText + ' ' + this.webTempWords + '.';
-          this.webTempWords = '';
-          this.webRecognition.start();
-        }
-      });
-    // }
+  listenToVoice() {
+    // this.captureAudio();
+    this.isStoppedWebSpeechRecog = false;
+    this.listening = true;
+    this.webRecognition.start();
+    console.log('Speech Recognition Started');
+    this.webRecognition.addEventListener('end', (condition) => {
+      if (this.isStoppedWebSpeechRecog) {
+        this.webRecognition.stop();
+        console.log('End Speech Recognition');
+      } else {
+        this.webText = this.webText + ' ' + this.webTempWords + '.';
+        this.webTempWords = '';
+        this.webRecognition.start();
+      }
+    });
   }
 
-  async stopListenToVoice() {
-    // if (this.platform.is('cordova')) {
-    //   this.speechRecognition.stopListening();
-    // } else {
-      this.isStoppedWebSpeechRecog = true;
-      this.webText = this.webText + ' ' + this.webTempWords + '.';
-      this.webTempWords = '';
-      this.webRecognition.stop();
-      console.log('End speech recognition');
-    // }
+  stopListenToVoice() {
+    this.listening = false;
+    this.isStoppedWebSpeechRecog = true;
+    this.webText = this.webText + ' ' + this.webTempWords + '.';
+    this.webTempWords = '';
+    this.webRecognition.stop();
+    console.log('End Speech Recognition');
   }
 
-  // async captureAudio() {
-  //   try {
-  //      let fileName =
-  //         'stt_record_' +
-  //         new Date().getDate() + '_' +
-  //         new Date().getMonth() + '_' +
-  //         new Date().getFullYear() + '_' +
-  //         new Date().getHours() + '_' +
-  //         new Date().getMinutes() + '_' +
-  //         new Date().getSeconds();
-  //      if (this.platform.is('ios')) {
-  //         fileName = fileName + '.m4a';
-  //         this.audioPath = this.file.documentsDirectory + fileName;
-  //         this.audio = this.media.create(this.audioPath.replace(/file:\/\//g, ''));
-  //      } else if (this.platform.is('android')) {
-  //         fileName = fileName + '.mp3';
-  //         this.audioPath = this.file.externalDataDirectory + fileName;
-  //         this.audio = this.media.create(this.audioPath.replace(/file:\/\//g, ''));
-  //      }
-  //      this.audio.startRecord();
-  //      this.isAudioRecording = true;
-  //      console.log('Start Record');
-  //   } catch (error) {
-  //      console.log(error);
-  //   }
-  // }
+  captureAudio() {
+    this.mediaCapture.captureAudio().then(res => {
+      this.storeMediaFiles(res);
+    });
+  }
 
-  // stopCaptureAudio() {
-  //   console.log('Stop Record');
-  //   this.audio.stopRecord();
-  //   this.isAudioRecording = false;
-  // }
+  play(myFile) {
+    const audioFile: MediaObject = this.media.create(myFile.localURL);
+    audioFile.play();
+  }
 
-  // playAudio() {
-  //   try {
-  //      this.audio = this.media.create(this.audioPath);
-  //      this.audio.play();
-  //      this.audio.setVolume(0.8);
-  //   } catch (error) {
-  //      console.log(error);
-  //   }
-  // }
+  storeMediaFiles(files) {
+    this.storage.get(MEDIA_FILES_KEY).then(res => {
+      if (res) {
+        let arr = JSON.parse(res);
+        arr = arr.concat(files);
+        this.storage.set(MEDIA_FILES_KEY, JSON.stringify(arr));
+      } else {
+        this.storage.set(MEDIA_FILES_KEY, JSON.stringify(files));
+      }
+      this.mediaFiles = this.mediaFiles.concat(files);
+    });
+  }
 
 }

@@ -1,0 +1,16 @@
+.mic-container {
+    display: flex;
+    align-items: center;
+}
+.micro {
+    background-color: var(--ion-color-primary);
+    padding: 16px;
+    border-radius: 50%;
+    display: block;
+    margin: 24px;
+    font-size: 32px;
+}
+
+.micro.listening {
+    background-color: red;
+}
