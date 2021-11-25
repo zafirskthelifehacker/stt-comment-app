@@ -6,9 +6,9 @@ import { Platform } from '@ionic/angular';
 import { Storage } from '@ionic/storage-angular';
 import { MediaCapture } from '@ionic-native/media-capture/ngx';
 
-declare const cordova: any;
-const MEDIA_FILES_KEY = 'mediaFiles';
-declare const webkitSpeechRecognition: any;
+// declare const cordova: any;
+// const MEDIA_FILES_KEY = 'mediaFiles';
+// declare const webkitSpeechRecognition: any;
 
 @Component({
   selector: 'app-speech',
@@ -54,18 +54,6 @@ export class SpeechComponent implements OnInit {
     );
   }
 
-  // requestPermission() {
-  //   const permissions: any = cordova.plugins.permissions;
-  //   permissions.requestPermissions(
-  //     [
-  //       permissions.RECORD_AUDIO,
-  //       permissions.MODIFY_AUDIO_SETTINGS
-  //     ],
-  //     (status) => console.log(status),
-  //     (error) => console.log(error)
-  //   );
-  // }
-
   listenToVoice() {
     console.log('Speech Recognition Started');
     this.listening = true;
@@ -83,7 +71,10 @@ export class SpeechComponent implements OnInit {
       },
       (onerror) => console.log('error:', onerror),
       () => {
-        this.listenText = temp;
+        this.zone.run(() => {
+          this.listening = false;
+          this.listenText = temp;
+        });
       }
     );
   }
